@@ -181,7 +181,7 @@ class CoreDataManager {
         }
     }
     
-    /// Obtém o número total de animais na base de dados
+
     /// - Returns: Contagem total de animais
     func getTotalAnimalsCount() -> Int {
         let request: NSFetchRequest<AnimalEntity> = AnimalEntity.fetchRequest()
@@ -193,4 +193,50 @@ class CoreDataManager {
             return 0
         }
     }
+    
+    func saveAnimalFromAPI(apiData: APIAnimal) {
+           
+            guard let idString = apiData.pet_id, let id64 = Int64(idString) else {
+                return // Sem ID válido, ignoramos
+            }
+            
+            
+            if let _ = fetchAnimal(byId: id64) {
+                return
+            }
+            
+           
+            let newAnimal = AnimalEntity(context: context)
+            newAnimal.id = id64
+            newAnimal.name = apiData.pet_name ?? "Sem Nome"
+            newAnimal.species = "Cão"
+            newAnimal.breed = apiData.primary_breed ?? "Raça desconhecida"
+            newAnimal.age = apiData.age ?? "N/A"
+            
+            
+            let sex = apiData.sex?.lowercased() ?? ""
+            if sex == "male" {
+                newAnimal.gender = "Macho"
+            } else if sex == "female" {
+                newAnimal.gender = "Fêmea"
+            } else {
+                newAnimal.gender = apiData.sex
+            }
+            
+            
+            let city = apiData.addr_city ?? ""
+            let state = apiData.addr_state_code ?? ""
+            newAnimal.location = "\(city), \(state)"
+            
+            
+            newAnimal.photoURLs = apiData.large_results_photo_url ?? apiData.results_photo_url
+            
+            
+            newAnimal.descriptionText = "Toque para ver mais detalhes sobre o \(newAnimal.name ?? "animal")."
+            
+            newAnimal.savedDate = Date()
+            newAnimal.isFollowing = false
+            
+            saveContext()
+        }
 }

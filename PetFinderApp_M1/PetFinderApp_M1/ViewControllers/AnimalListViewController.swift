@@ -25,6 +25,7 @@ class AnimalListViewController: UIViewController {
         setupTableView()
         setupConstraints()
         loadAnimals()
+        fetchDataFromAPI()	
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -110,6 +111,44 @@ class AnimalListViewController: UIViewController {
         let nav = UINavigationController(rootViewController: filterVC)
         present(nav, animated: true)
     }
+    
+    // MARK: - Integração API
+        
+        private func fetchDataFromAPI() {
+            // Indicador de atividade na barra de navegação (opcional, mas fica bem)
+            let activityIndicator = UIActivityIndicatorView(style: .medium)
+            activityIndicator.startAnimating()
+            navigationItem.rightBarButtonItems = [
+                UIBarButtonItem(customView: activityIndicator),
+                navigationItem.rightBarButtonItem! // Mantém o botão de filtros
+            ]
+            
+            print("📡 A iniciar pedido à API...")
+            
+            APIService.shared.fetchAnimals { [weak self] success in
+                DispatchQueue.main.async {
+                    // Parar animação
+                    activityIndicator.stopAnimating()
+                    
+                    // Restaurar botão original
+                    self?.navigationItem.rightBarButtonItems = [
+                        UIBarButtonItem(
+                            image: UIImage(systemName: "slider.horizontal.3"),
+                            style: .plain,
+                            target: self,
+                            action: #selector(self?.filterTapped)
+                        )
+                    ]
+                    
+                    if success {
+                        print("🔄 Dados recebidos da API. A atualizar tabela...")
+                        self?.loadAnimals() // Recarrega os dados do Core Data para a Tabela
+                    } else {
+                        print("⚠️ Falha ao obter dados da API.")
+                    }
+                }
+            }
+        }
 }
 
 // MARK: - Data Source da Tabela

@@ -39,8 +39,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         UNUserNotificationCenter.current().delegate = self
         requestNotificationPermission()
         
-        // Criar dados de teste (apenas se a base de dados estiver vazia)
-        MockData.seedTestData()
+   
         
         // Criar janela principal
         window = UIWindow(frame: UIScreen.main.bounds)
