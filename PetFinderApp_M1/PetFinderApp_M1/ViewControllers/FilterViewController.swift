@@ -1,109 +1,132 @@
 import UIKit
 
-/// Protocolo para comunicar filtros aplicados ao controlador principal
 protocol FilterViewControllerDelegate: AnyObject {
-    /// Chamado quando os filtros são aplicados
-    /// - Parameters:
-    ///   - species: Espécie filtrada (opcional)
-    ///   - breed: Raça filtrada (opcional)
-    ///   - gender: Género filtrado (opcional)
-    ///   - age: Idade filtrada (opcional)
-    func didApplyFilters(species: String?, breed: String?, gender: String?, age: String?)
+
+    func didApplyFilters(gender: String?, age: String?)
 }
 
-/// Controlador que permite ao utilizador filtrar a lista de animais
-/// Apresentado modalmente sobre a lista principal
 class FilterViewController: UIViewController {
     
-    // MARK: - Propriedades
-    
-    /// Delegado para comunicar filtros aplicados
     weak var delegate: FilterViewControllerDelegate?
     
-    // MARK: - Elementos de Interface
+    // MARK: - UI Elements
     
-    /// Vista de scroll para permitir navegação vertical
-    private let scrollView = UIScrollView()
+    private let titleLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Filtrar Resultados"
+        label.font = .systemFont(ofSize: 24, weight: .bold)
+        label.textAlignment = .center
+        return label
+    }()
     
-    /// Vista de conteúdo dentro do scroll
-    private let contentView = UIView()
+    // Selector de Género
+    private let genderLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Género"
+        label.font = .systemFont(ofSize: 16, weight: .medium)
+        return label
+    }()
     
-    /// Botão para aplicar os filtros selecionados
-    private let applyButton = UIButton(type: .system)
+    private let genderSegmentedControl: UISegmentedControl = {
+        let items = ["Todos", "Macho", "Fêmea"]
+        let sc = UISegmentedControl(items: items)
+        sc.selectedSegmentIndex = 0
+        return sc
+    }()
     
-    // MARK: - Ciclo de Vida
+    // Selector de Idade
+    private let ageLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Idade"
+        label.font = .systemFont(ofSize: 16, weight: .medium)
+        return label
+    }()
+    
+    private let ageSegmentedControl: UISegmentedControl = {
+        
+        let items = ["Todos", "Young", "Adult", "Senior"]
+        let sc = UISegmentedControl(items: items)
+        sc.selectedSegmentIndex = 0
+        return sc
+    }()
+    
+    private let applyButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Aplicar Filtros", for: .normal)
+        button.backgroundColor = .systemBlue
+        button.setTitleColor(.white, for: .normal)
+        button.layer.cornerRadius = 10
+        button.titleLabel?.font = .systemFont(ofSize: 18, weight: .bold)
+        return button
+    }()
+    
+    // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = .systemBackground
         setupUI()
     }
     
-    // MARK: - Configuração da Interface
-    
-    /// Configura todos os elementos da interface
     private func setupUI() {
-        title = "Filtros"
-        view.backgroundColor = .systemBackground
-        
-        // Botão de cancelar na barra de navegação
-        navigationItem.leftBarButtonItem = UIBarButtonItem(
-            barButtonSystemItem: .cancel,
-            target: self,
-            action: #selector(cancelTapped)
-        )
-        
-        // Configurar ScrollView e ContentView
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
-        contentView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(scrollView)
-        scrollView.addSubview(contentView)
-        
-        // Configurar botão de aplicar filtros
-        applyButton.setTitle("Aplicar Filtros", for: .normal)
-        applyButton.backgroundColor = .systemBlue
-        applyButton.setTitleColor(.white, for: .normal)
-        applyButton.layer.cornerRadius = 8
-        applyButton.translatesAutoresizingMaskIntoConstraints = false
-        applyButton.addTarget(self, action: #selector(applyTapped), for: .touchUpInside)
-        contentView.addSubview(applyButton)
-        
-        // Configurar restrições de layout
-        NSLayoutConstraint.activate([
-            // ScrollView ocupa toda a área segura
-            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            
-            // ContentView dentro do ScrollView
-            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
-            contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
-            contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
-            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
-            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
-            
-            // Botão de aplicar
-            applyButton.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 32),
-            applyButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            applyButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            applyButton.heightAnchor.constraint(equalToConstant: 50),
-            applyButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -32)
+        // StackView para organizar tudo verticalmente
+        let stackView = UIStackView(arrangedSubviews: [
+            titleLabel,
+            createSpacer(height: 20),
+            genderLabel,
+            genderSegmentedControl,
+            createSpacer(height: 20),
+            ageLabel,
+            ageSegmentedControl,
+            createSpacer(height: 40),
+            applyButton
         ])
+        
+        stackView.axis = .vertical
+        stackView.spacing = 10
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        
+        view.addSubview(stackView)
+        
+        NSLayoutConstraint.activate([
+            stackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 40),
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
+        ])
+        
+        // Altura do botão
+        applyButton.heightAnchor.constraint(equalToConstant: 50).isActive = true
+        
+        // Ação do botão
+        applyButton.addTarget(self, action: #selector(applyTapped), for: .touchUpInside)
     }
     
-    // MARK: - Acções
-    
-    /// Chamado quando o botão de cancelar é pressionado
-    /// Fecha o controlador sem aplicar filtros
-    @objc private func cancelTapped() {
-        dismiss(animated: true)
+    private func createSpacer(height: CGFloat) -> UIView {
+        let view = UIView()
+        view.heightAnchor.constraint(equalToConstant: height).isActive = true
+        return view
     }
     
-    /// Chamado quando o botão de aplicar é pressionado
-    /// Comunica os filtros ao delegado e fecha o controlador
+    // MARK: - Actions
+    
     @objc private func applyTapped() {
-        // Por enquanto, aplica filtros vazios (todos os animais)
-        delegate?.didApplyFilters(species: nil, breed: nil, gender: nil, age: nil)
+        // 1. Ler Género
+        var selectedGender: String? = nil
+        if genderSegmentedControl.selectedSegmentIndex == 1 {
+            selectedGender = "Macho"
+        } else if genderSegmentedControl.selectedSegmentIndex == 2 {
+            selectedGender = "Fêmea"
+        }
+        
+        // 2. Ler Idade
+        var selectedAge: String? = nil
+        let ageIndex = ageSegmentedControl.selectedSegmentIndex
+        if ageIndex > 0 { // 0 é "Todos"
+            selectedAge = ageSegmentedControl.titleForSegment(at: ageIndex)
+        }
+        
+        // 3. Enviar para o Delegate
+        delegate?.didApplyFilters(gender: selectedGender, age: selectedAge)
         dismiss(animated: true)
     }
 }

@@ -270,24 +270,22 @@ class CoreDataManager {
             
             
             if let age = age, !age.isEmpty, age != "Todos" {
-                // Como a API traz "Adult", "Young", etc, e o filtro pode estar em PT ou EN,
-                // usamos CONTAINS para ser mais flexível.
+                
                 predicates.append(NSPredicate(format: "age == %@", age))
             }
             
-            // 3. Filtro de Género
+            
             if let gender = gender, !gender.isEmpty, gender != "Todos" {
-                // Nota: No passo anterior convertemos "Male" -> "Macho".
-                // O filtro deve enviar "Macho" ou "Fêmea".
+                
                 predicates.append(NSPredicate(format: "gender == %@", gender))
             }
             
-            // 4. Juntar todos os filtros (E lógico)
+           
             if !predicates.isEmpty {
                 request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
             }
             
-            // Ordenar por data (mais recentes primeiro)
+            
             request.sortDescriptors = [NSSortDescriptor(key: "savedDate", ascending: false)]
             
             do {

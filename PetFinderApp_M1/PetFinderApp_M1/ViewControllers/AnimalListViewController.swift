@@ -247,17 +247,48 @@ extension AnimalListViewController: UITableViewDelegate {
 
 // MARK: - Delegate de Filtros
 
+// MARK: - FilterViewControllerDelegate
+
 extension AnimalListViewController: FilterViewControllerDelegate {
     
-    /// Chamado quando filtros são aplicados
-    /// - Parameters:
-    ///   - species: Espécie filtrada (opcional)
-    ///   - breed: Raça filtrada (opcional)
-    ///   - gender: Género filtrado (opcional)
-    ///   - age: Idade filtrada (opcional)
-    func didApplyFilters(species: String?, breed: String?, gender: String?, age: String?) {
-        print("Filtros aplicados: especie=\(species ?? "todas"), raca=\(breed ?? "todas"), genero=\(gender ?? "todos"), idade=\(age ?? "todas")")
-        loadAnimals()
+    func didApplyFilters(gender: String?, age: String?) {
+        print("🔍 Filtros aplicados -> Género: \(gender ?? "Todos"), Idade: \(age ?? "Todos")")
+        
+        // 1. Chamar o Core Data com os filtros
+        // Passamos 'species' a nil porque o filtro é genérico para cães
+        let filteredResults = CoreDataManager.shared.fetchFilteredAnimals(
+            species: nil,
+            age: age,
+            gender: gender
+        )
+        
+        // 2. Atualizar tabela
+        self.animals = filteredResults
+        DispatchQueue.main.async {
+            self.tableView.reloadData()
+            
+            // Mostrar mensagem se vazio
+            if self.animals.isEmpty {
+                self.showEmptyState()
+            } else {
+                self.hideEmptyState()
+            }
+        }
+    }
+    
+    // Funções auxiliares de UI (caso ainda não as tenhas adicionado)
+    private func showEmptyState() {
+        let label = UILabel()
+        label.text = "Nenhum animal encontrado 🐶"
+        label.textAlignment = .center
+        label.textColor = .secondaryLabel
+        tableView.backgroundView = label
+        tableView.separatorStyle = .none
+    }
+    
+    private func hideEmptyState() {
+        tableView.backgroundView = nil
+        tableView.separatorStyle = .singleLine
     }
 }
 
