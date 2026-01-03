@@ -20,19 +20,52 @@ class AnimalListViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupNavigationBar()
         setupUI()
         setupTableView()
         setupConstraints()
         loadAnimals()
         fetchDataFromAPI()	
+        
+        
     }
     
+    
+    private func setupNavigationBar() {
+            title = "Adopt a Pet"
+            navigationController?.navigationBar.prefersLargeTitles = true
+            
+            // --- CORREÇÃO DO SCROLL (Fundo Sólido) ---
+            let appearance = UINavigationBarAppearance()
+            appearance.configureWithOpaqueBackground() // Força o fundo opaco
+            appearance.backgroundColor = .systemBackground // Usa a cor de fundo do sistema (Branco/Preto)
+            
+            // Aplica a configuração aos 3 estados possíveis da barra
+            navigationController?.navigationBar.standardAppearance = appearance
+            navigationController?.navigationBar.compactAppearance = appearance
+            navigationController?.navigationBar.scrollEdgeAppearance = appearance
+            
+            // Configuração dos botões (opcional, mas fica bem)
+            navigationItem.rightBarButtonItems = [
+                UIBarButtonItem(
+                    image: UIImage(systemName: "slider.horizontal.3"),
+                    style: .plain,
+                    target: self,
+                    action: #selector(filterTapped)
+                )
+            ]
+        }
+    
     override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        // Recarregar dados sempre que a vista aparecer
-        // (para refletir mudanças feitas noutras vistas)
-        loadAnimals()
-    }
+            super.viewWillAppear(animated)
+            
+           
+            loadAnimals()
+    
+            if animals.isEmpty {
+                fetchDataFromAPI()
+            }
+        }
     
     // MARK: - Configuração da Interface
     
@@ -91,14 +124,29 @@ class AnimalListViewController: UIViewController {
         ])
     }
     
+    	
+    
     // MARK: - Gestão de Dados
     
     /// Carrega todos os animais da base de dados e actualiza a interface
-    private func loadAnimals() {
-        animals = CoreDataManager.shared.fetchAllAnimals()
-        emptyLabel.isHidden = !animals.isEmpty
-        tableView.reloadData()
-    }
+    func loadAnimals() {
+            
+            var loadedAnimals = CoreDataManager.shared.fetchFilteredAnimals(species: nil, age: nil, gender: nil)
+            
+            
+            let limit = UserDefaults.standard.integer(forKey: "itemsPerPage")
+            let maxItems = limit > 0 ? limit : 20
+            
+            if loadedAnimals.count > maxItems {
+                loadedAnimals = Array(loadedAnimals.prefix(maxItems))
+            }
+            
+            self.animals = loadedAnimals
+            
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
+            }
+        }
     
     // MARK: - Acções
     

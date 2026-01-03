@@ -98,7 +98,14 @@ import UserNotifications
         
         // Definir controlador raiz e tornar janela visível
         window?.rootViewController = tabBarController
-        window?.makeKeyAndVisible()
+        window?.makeKeyAndVisible()	
+        
+        let savedTheme = UserDefaults.standard.string(forKey: "appTheme")
+                if savedTheme == "Claro" {
+                    window?.overrideUserInterfaceStyle = .light
+                } else if savedTheme == "Escuro" {
+                    window?.overrideUserInterfaceStyle = .dark
+                }
         
         return true
     }
