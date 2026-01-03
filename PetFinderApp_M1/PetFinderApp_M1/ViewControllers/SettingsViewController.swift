@@ -35,9 +35,9 @@ extension SettingsViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
-        case 0: return 2 // Cache
-        case 1: return 2 // Notificações
-        case 2: return 1 // Geral
+        case 0: return 2 // Cache e Paginação
+        case 1: return 2 // Notificações e Hora
+        case 2: return 2 // Geral: Tema e Limpar Dados <--- MUDOU DE 1 PARA 2
         default: return 0
         }
     }
@@ -45,12 +45,11 @@ extension SettingsViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "SettingCell", for: indexPath)
         
-        // Reset cell properties
+        // Reset cell
         cell.textLabel?.text = ""
         cell.detailTextLabel?.text = ""
         cell.accessoryType = .none
         cell.textLabel?.textColor = .label
-        cell.selectionStyle = .default
         
         switch indexPath.section {
         case 0: // Cache
@@ -79,35 +78,26 @@ extension SettingsViewController: UITableViewDataSource {
             }
             
         case 2: // Geral
-            cell.textLabel?.text = "Limpar Todos os Dados"
-            cell.textLabel?.textColor = .systemRed
-            cell.selectionStyle = .gray
+            if indexPath.row == 0 {
+                // --- NOVO: TEMA ---
+                cell.textLabel?.text = "Tema da Aplicação"
+                let theme = UserDefaults.standard.string(forKey: "appTheme") ?? "Sistema"
+                cell.detailTextLabel?.text = theme
+                cell.accessoryType = .disclosureIndicator
+            } else {
+                // Limpar Dados
+                cell.textLabel?.text = "Limpar Todos os Dados"
+                cell.textLabel?.textColor = .systemRed
+            }
             
-        default:
-            break
+        default: break
         }
         
         return cell
     }
-    
-    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        switch section {
-        case 0: return "Cache"
-        case 1: return "Notificações"
-        case 2: return "Geral"
-        default: return nil
-        }
-    }
-    
-    func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
-        switch section {
-        case 0: return "Configura quanto tempo os dados são guardados localmente"
-        case 1: return "Receba notificações sobre novos animais"
-        case 2: return "Esta ação não pode ser desfeita"
-        default: return nil
-        }
-    }
 }
+    
+    
 
 extension SettingsViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -129,12 +119,47 @@ extension SettingsViewController: UITableViewDelegate {
             }
             
         case 2:
-            clearAllData()
+                if indexPath.row == 0 {
+                    showThemePicker() // <--- NOVO
+                } else {
+                    clearAllData()
+                }
         default:
             clearAllData()
         }
         
+        
     }
+    
+    private func showThemePicker() {
+            let alert = UIAlertController(title: "Tema", message: "Escolha a aparência", preferredStyle: .actionSheet)
+            
+            let themes = ["Sistema", "Claro", "Escuro"]
+            
+            for theme in themes {
+                alert.addAction(UIAlertAction(title: theme, style: .default) { _ in
+                    // 1. Guardar preferência
+                    UserDefaults.standard.set(theme, forKey: "appTheme")
+                    
+                    // 2. Aplicar imediatamente
+                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                       let window = windowScene.windows.first {
+                        
+                        switch theme {
+                        case "Claro": window.overrideUserInterfaceStyle = .light
+                        case "Escuro": window.overrideUserInterfaceStyle = .dark
+                        default: window.overrideUserInterfaceStyle = .unspecified
+                        }
+                    }
+                    
+                    // 3. Atualizar Tabela
+                    self.tableView.reloadRows(at: [IndexPath(row: 0, section: 2)], with: .automatic)
+                })
+            }
+            
+            alert.addAction(UIAlertAction(title: "Cancelar", style: .cancel))
+            present(alert, animated: true)
+        }
     
     // MARK: - Actions
     

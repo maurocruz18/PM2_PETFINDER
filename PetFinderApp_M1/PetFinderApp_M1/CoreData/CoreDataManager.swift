@@ -295,4 +295,32 @@ class CoreDataManager {
                 return []
             }
         }
+    
+    // MARK: - Cache Management
+        
+       
+        func cleanExpiredCache() {
+            
+            let expirationMinutes = UserDefaults.standard.integer(forKey: "cacheExpirationMinutes")
+            let limit = expirationMinutes > 0 ? expirationMinutes : 60
+            
+            	
+            guard let expirationDate = Calendar.current.date(byAdding: .minute, value: -limit, to: Date()) else { return }
+            
+            // 3. Preparar a query: apagar tudo o que tenha savedDate ANTERIOR à data limite
+            // E (importante!) não apagar os que estamos a seguir (isFollowing == false)
+            let request: NSFetchRequest<NSFetchRequestResult> = AnimalEntity.fetchRequest()
+            request.predicate = NSPredicate(format: "savedDate < %@ AND isFollowing == NO", expirationDate as NSDate)
+            
+            let deleteRequest = NSBatchDeleteRequest(fetchRequest: request)
+            
+            do {
+                print("🧹 A limpar cache mais antiga que \(limit) minutos...")
+                try context.execute(deleteRequest)
+                saveContext()
+                print("✨ Cache limpa com sucesso.")
+            } catch {
+                print("❌ Erro ao limpar cache: \(error)")
+            }
+        }
 }
