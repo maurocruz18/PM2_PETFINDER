@@ -20,6 +20,7 @@
 		A1000009000000000000001 /* PetFinderDataModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = A2000009000000000000001 /* PetFinderDataModel.xcdatamodeld */; };
 		A1000010000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000010000000000000001 /* Assets.xcassets */; };
 		A1000011000000000000001 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A2000011000000000000001 /* LaunchScreen.storyboard */; };
+		F30759162F098CB50070CF59 /* AchievementManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30759152F098CB50070CF59 /* AchievementManager.swift */; };
 		F3A953982F095C4A0078EC63 /* AnimalEntity+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A953962F095C4A0078EC63 /* AnimalEntity+CoreDataClass.swift */; };
 		F3A953992F095C4A0078EC63 /* AnimalEntity+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A953972F095C4A0078EC63 /* AnimalEntity+CoreDataProperties.swift */; };
 		F3A9539D2F0963DD0078EC63 /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A9539C2F0963DD0078EC63 /* APIService.swift */; };
@@ -41,6 +42,7 @@
 		A2000010000000000000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A2000012000000000000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A3000001000000000000001 /* PetFinderApp_M1.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PetFinderApp_M1.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F30759152F098CB50070CF59 /* AchievementManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AchievementManager.swift; sourceTree = "<group>"; };
 		F3A953962F095C4A0078EC63 /* AnimalEntity+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AnimalEntity+CoreDataClass.swift"; sourceTree = "<group>"; };
 		F3A953972F095C4A0078EC63 /* AnimalEntity+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AnimalEntity+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		F3A9539C2F0963DD0078EC63 /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
@@ -107,6 +109,7 @@
 			children = (
 				A2000006000000000000001 /* NotificationService.swift */,
 				F3A9539C2F0963DD0078EC63 /* APIService.swift */,
+				F30759152F098CB50070CF59 /* AchievementManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -208,6 +211,7 @@
 				F3A953A12F0967260078EC63 /* AnimalData.swift in Sources */,
 				A1000002A00000000000001 /* AnimalTableViewCell.swift in Sources */,
 				A1000002B00000000000001 /* AnimalDetailViewController.swift in Sources */,
+				F30759162F098CB50070CF59 /* AchievementManager.swift in Sources */,
 				A1000003000000000000001 /* FollowingViewController.swift in Sources */,
 				A1000004000000000000001 /* AchievementsViewController.swift in Sources */,
 				F3A9539D2F0963DD0078EC63 /* APIService.swift in Sources */,

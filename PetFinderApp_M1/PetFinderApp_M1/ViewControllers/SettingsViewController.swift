@@ -236,25 +236,30 @@ extension SettingsViewController: UITableViewDelegate {
     }
     
     private func clearAllData() {
-        let alert = UIAlertController(
-            title: "Limpar Dados",
-            message: "Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita.",
-            preferredStyle: .alert
-        )
-        
-        alert.addAction(UIAlertAction(title: "Cancelar", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Limpar", style: .destructive) { _ in
-            CoreDataManager.shared.deleteAllAnimals()
-            
-            let successAlert = UIAlertController(
-                title: "Sucesso",
-                message: "Todos os dados foram eliminados.",
+            let alert = UIAlertController(
+                title: "Limpar Dados",
+                message: "Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita.",
                 preferredStyle: .alert
             )
-            successAlert.addAction(UIAlertAction(title: "OK", style: .default))
-            self.present(successAlert, animated: true)
-        })
-        
-        present(alert, animated: true)
-    }
+            
+            alert.addAction(UIAlertAction(title: "Cancelar", style: .cancel))
+            alert.addAction(UIAlertAction(title: "Limpar", style: .destructive) { _ in
+                
+                CoreDataManager.shared.deleteAllAnimals()
+                
+                
+                AchievementManager.shared.resetAllAchievements()
+                
+           
+                let successAlert = UIAlertController(
+                    title: "Sucesso",
+                    message: "Todos os dados e conquistas foram eliminados.",
+                    preferredStyle: .alert
+                )
+                successAlert.addAction(UIAlertAction(title: "OK", style: .default))
+                self.present(successAlert, animated: true)
+            })
+            
+            present(alert, animated: true)
+        }
 }
