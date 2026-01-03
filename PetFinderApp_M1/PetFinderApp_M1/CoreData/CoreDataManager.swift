@@ -239,4 +239,62 @@ class CoreDataManager {
             
             saveContext()
         }
+    
+    // MARK: - Random Helper
+        
+        func fetchRandomAnimal() -> AnimalEntity? {
+            let request: NSFetchRequest<AnimalEntity> = AnimalEntity.fetchRequest()
+            
+            do {
+                let allAnimals = try context.fetch(request)
+                return allAnimals.randomElement()
+            } catch {
+                print("❌ Erro ao buscar animal aleatório: \(error)")
+                return nil
+            }
+        }
+    
+    // MARK: - Filtering
+        
+        /// Pesquisa animais com filtros opcionais
+        func fetchFilteredAnimals(species: String?, age: String?, gender: String?) -> [AnimalEntity] {
+            let request: NSFetchRequest<AnimalEntity> = AnimalEntity.fetchRequest()
+            
+            var predicates: [NSPredicate] = []
+            
+           
+            if let species = species, !species.isEmpty, species != "Todos" {
+                
+                predicates.append(NSPredicate(format: "species CONTAINS[cd] %@", species))
+            }
+            
+            
+            if let age = age, !age.isEmpty, age != "Todos" {
+                // Como a API traz "Adult", "Young", etc, e o filtro pode estar em PT ou EN,
+                // usamos CONTAINS para ser mais flexível.
+                predicates.append(NSPredicate(format: "age == %@", age))
+            }
+            
+            // 3. Filtro de Género
+            if let gender = gender, !gender.isEmpty, gender != "Todos" {
+                // Nota: No passo anterior convertemos "Male" -> "Macho".
+                // O filtro deve enviar "Macho" ou "Fêmea".
+                predicates.append(NSPredicate(format: "gender == %@", gender))
+            }
+            
+            // 4. Juntar todos os filtros (E lógico)
+            if !predicates.isEmpty {
+                request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+            }
+            
+            // Ordenar por data (mais recentes primeiro)
+            request.sortDescriptors = [NSSortDescriptor(key: "savedDate", ascending: false)]
+            
+            do {
+                return try context.fetch(request)
+            } catch {
+                print("❌ Erro ao filtrar: \(error)")
+                return []
+            }
+        }
 }

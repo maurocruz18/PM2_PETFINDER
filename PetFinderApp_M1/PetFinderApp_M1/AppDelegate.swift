@@ -4,7 +4,7 @@ import UserNotifications
 
 /// Classe principal da aplicação que gere o ciclo de vida e a configuração inicial
 @main
-class AppDelegate: UIResponder, UIApplicationDelegate {
+    class AppDelegate: UIResponder, UIApplicationDelegate {
     
     // MARK: - Propriedades
     
@@ -139,12 +139,39 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 extension AppDelegate: UNUserNotificationCenterDelegate {
     
-    /// Chamado quando uma notificação é recebida enquanto a app está em primeiro plano
-    /// Configura como a notificação deve ser apresentada
-    func userNotificationCenter(_ center: UNUserNotificationCenter,
-                             willPresent notification: UNNotification,
-                             withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        // Mostrar banner, som e badge mesmo com a app aberta
+   
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         completionHandler([.banner, .sound, .badge])
+    }
+    
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        
+        let userInfo = response.notification.request.content.userInfo
+        
+        
+        if let animalID = userInfo["animalID"] as? Int64 {
+            print("🔔 O utilizador tocou na notificação do animal ID: \(animalID)")
+            
+            
+            if let animal = CoreDataManager.shared.fetchAnimal(byId: animalID) {
+                
+                
+                DispatchQueue.main.async {
+                    // Encontra a janela principal
+                    if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                       let window = scene.windows.first,
+                       let tabBarController = window.rootViewController as? UITabBarController,
+                       let navController = tabBarController.selectedViewController as? UINavigationController {
+                        
+                        // Cria a vista de detalhe e empurra-a para o ecrã
+                        let detailVC = AnimalDetailViewController(animal: animal)
+                        navController.pushViewController(detailVC, animated: true)
+                    }
+                }
+            }
+        }
+        
+        completionHandler()
     }
 }

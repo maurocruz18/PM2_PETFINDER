@@ -1,12 +1,11 @@
 import UIKit
 
-/// Controlador que apresenta a lista completa de animais disponíveis para adoção
-/// Permite visualizar, filtrar e seguir animais
+
 class AnimalListViewController: UIViewController {
     
     // MARK: - Propriedades de Interface
     
-    /// Tabela que exibe a lista de animais
+    
     private let tableView = UITableView()
     
     /// Etiqueta mostrada quando não há animais disponíveis
@@ -14,7 +13,7 @@ class AnimalListViewController: UIViewController {
     
     // MARK: - Propriedades de Dados
     
-    /// Array com todos os animais a serem exibidos
+    
     private var animals: [AnimalEntity] = []
     
     // MARK: - Ciclo de Vida
@@ -146,6 +145,46 @@ class AnimalListViewController: UIViewController {
                     } else {
                         print("⚠️ Falha ao obter dados da API.")
                     }
+                }
+            }
+        }
+    
+    // MARK: - Shake Gesture & Notifications
+        
+        
+        override var canBecomeFirstResponder: Bool {
+            return true
+        }
+        
+        
+        override func motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?) {
+            if motion == .motionShake {
+                print("📳 Device Shaken!")
+                triggerRandomAnimalNotification()
+            }
+        }
+        
+        
+        private func triggerRandomAnimalNotification() {
+            guard let randomAnimal = CoreDataManager.shared.fetchRandomAnimal() else { return }
+            
+            let content = UNMutableNotificationContent()
+            content.title = "✨ Descobre um novo amigo!"
+            content.body = "Conhece o \(randomAnimal.name ?? "animal"), um \(randomAnimal.species ?? "") que procura um lar."
+            content.sound = .default
+            
+           
+            content.userInfo = ["animalID": randomAnimal.id]
+            
+            
+            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.5, repeats: false)
+            let request = UNNotificationRequest(identifier: "RandomAnimal", content: content, trigger: trigger)
+            
+            UNUserNotificationCenter.current().add(request) { error in
+                if let error = error {
+                    print("❌ Erro na notificação: \(error)")
+                } else {
+                    print("✅ Notificação agendada para o animal \(randomAnimal.name ?? "")")
                 }
             }
         }
