@@ -116,10 +116,14 @@ class CoreDataManager {
     // MARK: - Operações de Actualização
     
     /// Alterna o estado de "seguir" de um animal
+    /// 🏆 VERIFICA CONQUISTAS APÓS MUDANÇA
     /// - Parameter animal: Animal a actualizar
     func toggleFollowing(for animal: AnimalEntity) {
         animal.isFollowing.toggle()
         saveContext()
+        
+        // 🏆 VERIFICAR CONQUISTAS
+        AchievementManager.shared.checkFollowingAchievements()
     }
     
     /// Guarda alterações feitas a um animal
@@ -131,10 +135,14 @@ class CoreDataManager {
     // MARK: - Operações de Eliminação
     
     /// Remove um animal específico da base de dados
+    /// 🏆 VERIFICA CONQUISTAS APÓS ELIMINAÇÃO
     /// - Parameter animal: Animal a eliminar
     func deleteAnimal(_ animal: AnimalEntity) {
         context.delete(animal)
         saveContext()
+        
+        // 🏆 VERIFICAR CONQUISTAS
+        AchievementManager.shared.checkFollowingAchievements()
     }
     
     /// Remove todos os animais da base de dados
@@ -146,6 +154,9 @@ class CoreDataManager {
         do {
             try context.execute(deleteRequest)
             saveContext()
+            
+            // 🏆 VERIFICAR CONQUISTAS
+            AchievementManager.shared.checkFollowingAchievements()
         } catch {
             print("Erro ao eliminar todos os animais: \(error)")
         }

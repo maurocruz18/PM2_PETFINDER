@@ -24,61 +24,32 @@ class AchievementsViewController: UIViewController {
     /// Etiqueta mostrada quando não há conquistas
     private let emptyLabel = UILabel()
     
+    /// Etiqueta de estatísticas do utilizador
+    private let statsLabel = UILabel()
+    
+    /// Vista contentor para estatísticas
+    private let statsContainerView = UIView()
+    
     // MARK: - Propriedades de Dados
     
-    /// Lista de todas as conquistas disponíveis
-    let achievements: [Achievement] = [
-        Achievement(
-            id: 1,
-            title: "Primeiro Passo",
-            description: "Seguir seu primeiro animal",
-            icon: "star.fill",
-            isUnlocked: true
-        ),
-        Achievement(
-            id: 2,
-            title: "Colecionador",
-            description: "Seguir 5 animais",
-            icon: "heart.circle.fill",
-            isUnlocked: true
-        ),
-        Achievement(
-            id: 3,
-            title: "Protetor",
-            description: "Seguir 10 animais",
-            icon: "shield.fill",
-            isUnlocked: false
-        ),
-        Achievement(
-            id: 4,
-            title: "Campeão",
-            description: "Seguir 25 animais",
-            icon: "crown.fill",
-            isUnlocked: false
-        ),
-        Achievement(
-            id: 5,
-            title: "Visitante",
-            description: "Visitar a app 5 vezes",
-            icon: "eye.fill",
-            isUnlocked: true
-        ),
-        Achievement(
-            id: 6,
-            title: "Explorador",
-            description: "Visitar a app 20 vezes",
-            icon: "map.fill",
-            isUnlocked: false
-        ),
-    ]
+    /// Lista de todas as conquistas (obtida dinamicamente do AchievementManager)
+    private var achievements: [Achievement] = []
     
     // MARK: - Ciclo de Vida
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        setupStatsView()
         setupCollectionView()
         setupConstraints()
+        loadAchievements()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        // Recarregar conquistas sempre que a vista aparecer
+        loadAchievements()
     }
     
     // MARK: - Configuração da Interface
@@ -89,6 +60,16 @@ class AchievementsViewController: UIViewController {
         view.backgroundColor = .systemBackground
         navigationController?.navigationBar.prefersLargeTitles = true
         
+        // Botão de reset (apenas para desenvolvimento)
+        #if DEBUG
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            image: UIImage(systemName: "arrow.counterclockwise"),
+            style: .plain,
+            target: self,
+            action: #selector(resetAchievements)
+        )
+        #endif
+        
         // Configurar etiqueta de estado vazio
         emptyLabel.text = "Desbloqueie conquistas\nseguindo animais!"
         emptyLabel.textAlignment = .center
@@ -98,6 +79,28 @@ class AchievementsViewController: UIViewController {
         emptyLabel.isHidden = true
         emptyLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(emptyLabel)
+    }
+    
+    /// Configura a vista de estatísticas no topo
+    private func setupStatsView() {
+        statsContainerView.translatesAutoresizingMaskIntoConstraints = false
+        statsContainerView.backgroundColor = .systemBlue.withAlphaComponent(0.1)
+        statsContainerView.layer.cornerRadius = 12
+        
+        statsLabel.translatesAutoresizingMaskIntoConstraints = false
+        statsLabel.numberOfLines = 0
+        statsLabel.textAlignment = .center
+        statsLabel.font = .systemFont(ofSize: 14, weight: .medium)
+        
+        statsContainerView.addSubview(statsLabel)
+        view.addSubview(statsContainerView)
+        
+        NSLayoutConstraint.activate([
+            statsLabel.topAnchor.constraint(equalTo: statsContainerView.topAnchor, constant: 12),
+            statsLabel.leadingAnchor.constraint(equalTo: statsContainerView.leadingAnchor, constant: 12),
+            statsLabel.trailingAnchor.constraint(equalTo: statsContainerView.trailingAnchor, constant: -12),
+            statsLabel.bottomAnchor.constraint(equalTo: statsContainerView.bottomAnchor, constant: -12)
+        ])
     }
     
     /// Configura a vista de coleção
@@ -114,8 +117,13 @@ class AchievementsViewController: UIViewController {
     /// Configura as restrições de layout
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-            // Vista de coleção ocupa toda a área
-            collectionView.topAnchor.constraint(equalTo: view.topAnchor),
+            // Vista de estatísticas no topo
+            statsContainerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
+            statsContainerView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            statsContainerView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            
+            // Vista de coleção abaixo das estatísticas
+            collectionView.topAnchor.constraint(equalTo: statsContainerView.bottomAnchor, constant: 8),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
@@ -126,6 +134,56 @@ class AchievementsViewController: UIViewController {
             emptyLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             emptyLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
         ])
+    }
+    
+    // MARK: - Gestão de Dados
+    
+    /// Carrega as conquistas do AchievementManager
+    private func loadAchievements() {
+        achievements = AchievementManager.shared.getAllAchievements()
+        updateStatsLabel()
+        collectionView.reloadData()
+    }
+    
+    /// Atualiza a etiqueta de estatísticas
+    private func updateStatsLabel() {
+        let stats = AchievementManager.shared.getUserStats()
+        let unlockedCount = achievements.filter { $0.isUnlocked }.count
+        
+        let statsText = """
+        📊 Progresso: \(unlockedCount)/\(achievements.count) conquistas
+        ❤️ Animais seguidos: \(stats.followingCount)
+        👁️ Visitas à app: \(stats.visitCount)
+        """
+        
+        statsLabel.text = statsText
+    }
+    
+    // MARK: - Acções
+    
+    /// Reset de conquistas (apenas para desenvolvimento)
+    @objc private func resetAchievements() {
+        let alert = UIAlertController(
+            title: "Reset de Conquistas",
+            message: "Tem certeza que deseja resetar todas as conquistas? (Apenas para testes)",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "Cancelar", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Reset", style: .destructive) { _ in
+            AchievementManager.shared.resetAllAchievements()
+            self.loadAchievements()
+            
+            let successAlert = UIAlertController(
+                title: "Reset Completo",
+                message: "Todas as conquistas foram resetadas.",
+                preferredStyle: .alert
+            )
+            successAlert.addAction(UIAlertAction(title: "OK", style: .default))
+            self.present(successAlert, animated: true)
+        })
+        
+        present(alert, animated: true)
     }
 }
 
@@ -142,7 +200,15 @@ extension AchievementsViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "AchievementCell", for: indexPath) as! AchievementCell
         let achievement = achievements[indexPath.row]
-        cell.configure(with: achievement)
+        
+        // Obter progresso da conquista
+        if let achievementType = AchievementManager.AchievementType(rawValue: achievement.id) {
+            let progress = AchievementManager.shared.getProgress(for: achievementType)
+            cell.configure(with: achievement, progress: progress)
+        } else {
+            cell.configure(with: achievement, progress: 0)
+        }
+        
         return cell
     }
 }
@@ -160,37 +226,25 @@ extension AchievementsViewController: UICollectionViewDelegate {
     /// Apresenta um alerta com detalhes da conquista
     /// - Parameter achievement: Conquista a exibir
     private func showAchievementDetails(_ achievement: Achievement) {
+        var message = achievement.description
+        
+        // Adicionar progresso se a conquista não estiver desbloqueada
+        if !achievement.isUnlocked, let achievementType = AchievementManager.AchievementType(rawValue: achievement.id) {
+            let progress = AchievementManager.shared.getProgress(for: achievementType)
+            message += "\n\nProgresso: \(Int(progress))%"
+        }
+        
         let alert = UIAlertController(
-            title: achievement.title,
-            message: achievement.description,
+            title: achievement.isUnlocked ? "✅ \(achievement.title)" : "🔒 \(achievement.title)",
+            message: message,
             preferredStyle: .alert
         )
         alert.addAction(UIAlertAction(
-            title: achievement.isUnlocked ? "Conseguido!" : "Bloqueado",
+            title: "OK",
             style: .default
         ))
         present(alert, animated: true)
     }
-}
-
-// MARK: - Modelo de Conquista
-
-/// Estrutura que representa uma conquista
-struct Achievement {
-    /// Identificador único
-    let id: Int
-    
-    /// Título da conquista
-    let title: String
-    
-    /// Descrição de como desbloquear
-    let description: String
-    
-    /// Nome do ícone SF Symbol
-    let icon: String
-    
-    /// Se a conquista está desbloqueada
-    let isUnlocked: Bool
 }
 
 // MARK: - Célula de Conquista
@@ -214,6 +268,12 @@ class AchievementCell: UICollectionViewCell {
     
     /// Ícone de cadeado para conquistas bloqueadas
     private let lockImageView = UIImageView()
+    
+    /// Barra de progresso
+    private let progressView = UIProgressView(progressViewStyle: .default)
+    
+    /// Etiqueta de percentagem de progresso
+    private let progressLabel = UILabel()
     
     // MARK: - Inicialização
     
@@ -261,11 +321,24 @@ class AchievementCell: UICollectionViewCell {
         lockImageView.tintColor = .systemGray
         lockImageView.translatesAutoresizingMaskIntoConstraints = false
         
+        // Barra de progresso
+        progressView.translatesAutoresizingMaskIntoConstraints = false
+        progressView.progressTintColor = .systemBlue
+        progressView.trackTintColor = .systemGray5
+        
+        // Etiqueta de progresso
+        progressLabel.font = .systemFont(ofSize: 10, weight: .medium)
+        progressLabel.textColor = .secondaryLabel
+        progressLabel.textAlignment = .center
+        progressLabel.translatesAutoresizingMaskIntoConstraints = false
+        
         // Adicionar elementos
         containerView.addSubview(iconView)
         containerView.addSubview(titleLabel)
         containerView.addSubview(descriptionLabel)
         containerView.addSubview(lockImageView)
+        containerView.addSubview(progressView)
+        containerView.addSubview(progressLabel)
         contentView.addSubview(containerView)
         
         // Restrições de layout
@@ -291,7 +364,17 @@ class AchievementCell: UICollectionViewCell {
             descriptionLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
             descriptionLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 8),
             descriptionLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -8),
-            descriptionLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -8),
+            
+            // Barra de progresso
+            progressView.topAnchor.constraint(equalTo: descriptionLabel.bottomAnchor, constant: 8),
+            progressView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
+            progressView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
+            progressView.heightAnchor.constraint(equalToConstant: 4),
+            
+            // Etiqueta de progresso
+            progressLabel.topAnchor.constraint(equalTo: progressView.bottomAnchor, constant: 4),
+            progressLabel.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
+            progressLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -8),
             
             // Cadeado no canto superior direito
             lockImageView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 8),
@@ -303,9 +386,11 @@ class AchievementCell: UICollectionViewCell {
     
     // MARK: - Configuração
     
-    /// Configura a célula com dados de uma conquista
-    /// - Parameter achievement: Conquista a exibir
-    func configure(with achievement: Achievement) {
+    /// Configura a célula com dados de uma conquista e progresso
+    /// - Parameters:
+    ///   - achievement: Conquista a exibir
+    ///   - progress: Progresso (0-100)
+    func configure(with achievement: Achievement, progress: Double) {
         // Configurar ícone
         iconView.image = UIImage(systemName: achievement.icon)
         iconView.tintColor = achievement.isUnlocked ? .systemYellow : .systemGray3
@@ -316,6 +401,17 @@ class AchievementCell: UICollectionViewCell {
         
         // Mostrar/ocultar cadeado
         lockImageView.isHidden = achievement.isUnlocked
+        
+        // Configurar progresso
+        if achievement.isUnlocked {
+            progressView.progress = 1.0
+            progressLabel.text = "Completo!"
+            progressLabel.textColor = .systemGreen
+        } else {
+            progressView.progress = Float(progress / 100.0)
+            progressLabel.text = "\(Int(progress))%"
+            progressLabel.textColor = .secondaryLabel
+        }
         
         // Ajustar aparência conforme estado
         containerView.backgroundColor = achievement.isUnlocked ? .systemGray6 : .systemGray5

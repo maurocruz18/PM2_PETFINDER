@@ -39,6 +39,11 @@ import UserNotifications
         UNUserNotificationCenter.current().delegate = self
         requestNotificationPermission()
         
+        // 🏆 INCREMENTAR CONTADOR DE ABERTURAS DA APP
+        AchievementManager.shared.incrementAppOpenCount()
+        
+        // 🏆 VERIFICAR CONQUISTAS RELACIONADAS COM SEGUIR ANIMAIS
+        AchievementManager.shared.checkFollowingAchievements()
    
         
         // Criar janela principal
